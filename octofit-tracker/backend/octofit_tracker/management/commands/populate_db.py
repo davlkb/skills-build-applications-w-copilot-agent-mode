@@ -10,17 +10,29 @@ class Command(BaseCommand):
         # Delete all data (delete individually to avoid Djongo unhashable pk issue)
         for model in [User, Team, Activity, Leaderboard, Workout]:
             for obj in model.objects.all():
-                obj.delete()
+                if getattr(obj, 'id', None) is not None:
+                    obj.delete()
 
         # Create Teams
-        marvel = Team.objects.create(name='Marvel')
-        dc = Team.objects.create(name='DC')
+
+        marvel = Team(name='Marvel')
+        marvel.save(force_insert=True)
+        dc = Team(name='DC')
+        dc.save(force_insert=True)
 
         # Create Users
-        ironman = User.objects.create_user(username='ironman', email='ironman@marvel.com', password='password', team=marvel)
-        captain = User.objects.create_user(username='captainamerica', email='cap@marvel.com', password='password', team=marvel)
-        batman = User.objects.create_user(username='batman', email='batman@dc.com', password='password', team=dc)
-        superman = User.objects.create_user(username='superman', email='superman@dc.com', password='password', team=dc)
+        ironman = User.objects.create_user(username='ironman', email='ironman@marvel.com', password='password')
+        ironman.team = marvel
+        ironman.save()
+        captain = User.objects.create_user(username='captainamerica', email='cap@marvel.com', password='password')
+        captain.team = marvel
+        captain.save()
+        batman = User.objects.create_user(username='batman', email='batman@dc.com', password='password')
+        batman.team = dc
+        batman.save()
+        superman = User.objects.create_user(username='superman', email='superman@dc.com', password='password')
+        superman.team = dc
+        superman.save()
 
         # Create Activities
         Activity.objects.create(user=ironman, type='run', duration=30, distance=5)
